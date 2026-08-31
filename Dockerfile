@@ -1,23 +1,26 @@
-# Use Node.js 16 slim as the base image
-FROM node:26-slim
+# Use Node.js 20 as the base image
+FROM node:20-slim
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+# Copy package files first
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
+# Copy application source code
 COPY . .
 
-# Build the React app
+# Build React application
 RUN npm run build
 
-# Expose port 3000 (or the port your app is configured to listen on)
+# React development server port
 EXPOSE 3000
 
-# Start your Node.js server (assuming it serves the React app)  
+# Allow access from outside the container
+ENV HOST=0.0.0.0
+
+# Start React application
 CMD ["npm", "start"]
