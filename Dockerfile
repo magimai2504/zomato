@@ -1,26 +1,32 @@
-# Use Node.js 20 as the base image
-FROM node:22-slim
+# Stage 1: Build the React application
+FROM node:22-slim AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files first
+# Copy dependency files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy application source code
 COPY . .
 
-# Build React application
+# Build the production React app
 RUN npm run build
 
-# React development server port
-EXPOSE 3000
 
-# Allow access from outside the container
-ENV HOST=0.0.0.0
+# Stage 2: Serve the app using Nginx
+FROM nginx:alpine
 
-# Start React application
-CMD ["npm", "start"]
+# Remove default Nginx page
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy React build files into Nginx
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose HTTP port
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
